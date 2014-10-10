@@ -390,7 +390,7 @@ CacheDBProto.put = function(origin, cacheName, items) {
         if (!hasCache) {
           throw Error("Cache of that name does not exist");
         }
-
+        var entries = [];
         items.forEach(function(item, i) {
           var request = item[0];
           var response = item[1];
@@ -401,9 +401,7 @@ CacheDBProto.put = function(origin, cacheName, items) {
           requestUrlNoSearch.search = '';
           // working around Chrome bug
           requestUrlNoSearch = requestUrlNoSearch.href.replace(/\?$/, '');
-
-          this._delete(tx, origin, cacheName, request, function() {
-            tx.objectStore('cacheEntries').add({
+          entries.push([request, {
               origin: origin,
               cacheName: cacheName,
               request: requestEntry,
@@ -411,10 +409,21 @@ CacheDBProto.put = function(origin, cacheName, items) {
               requestUrlNoSearch: requestUrlNoSearch,
               varyID: createVaryID(requestEntry, responseEntry),
               added: Date.now()
-            });
-          });
-
+            }]);
         }.bind(this));
+        var saveNext = function(entries, i) {
+            if (i == entries.length) {
+              return;
+            }
+            this._delete(tx, origin, cacheName, entries[i][0], function() {
+              var req = tx.objectStore('cacheEntries').put(entries[i][1]);
+              req.onsuccess = (function(event) {
+                saveNext(i + 1);
+              }).bind(this);
+            }.bind(this));
+          }.bind(this, entries);
+        saveNext(0);
+        
       }.bind(this));
     }.bind(this), {mode: 'readwrite'});
   }.bind(this)).then(function() {
