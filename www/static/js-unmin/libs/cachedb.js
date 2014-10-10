@@ -53,7 +53,7 @@ function createVaryID(entryRequest, entryResponse) {
 function flattenHeaders(headers) {
   var returnVal = {};
 
-  for (var header in headers) {
+  for (var header of headers) {
     returnVal[header[0].toLowerCase()] = header[1];
   }
 
