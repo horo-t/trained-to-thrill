@@ -416,7 +416,7 @@ CacheDBProto.put = function(origin, cacheName, items) {
               return;
             }
             this._delete(tx, origin, cacheName, entries[i][0], function() {
-              var req = tx.objectStore('cacheEntries').put(entries[i][1]);
+              var req = tx.objectStore('cacheEntries').add(entries[i][1]);
               req.onsuccess = (function(event) {
                 saveNext(i + 1);
               }).bind(this);
