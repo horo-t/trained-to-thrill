@@ -1,8 +1,21 @@
 var caches = require('../libs/caches');
 
 self.oninstall = function(event) {
-  event.waitUntil(Promise.all([
-    caches.get('trains-static-v11').then(function(cache) {
+  event.waitUntil(
+    caches.get('trains-imgs')
+    .then(function(cache) {
+      return cache || caches.create('trains-imgs');
+    })
+    .then(function() {
+      return caches.get('trains-data');
+    })
+    .then(function(cache) {
+      return cache || caches.create('trains-data');
+    })
+    .then(function() {
+      return caches.get('trains-static-v11');
+    })
+    .then(function(cache) {
       return cache || caches.create('trains-static-v11');
     }).then(function(cache) {
       return cache.addAll([
@@ -12,14 +25,8 @@ self.oninstall = function(event) {
         '/trained-to-thrill/static/imgs/logo.svg',
         '/trained-to-thrill/static/imgs/icon.png'
       ]);
-    }),
-    caches.get('trains-imgs').then(function(cache) {
-      return cache || caches.create('trains-imgs');
-    }),
-    caches.get('trains-data').then(function(cache) {
-      return cache || caches.create('trains-data');
     })
-  ]));
+  );
 };
 
 var expectedCaches = [
